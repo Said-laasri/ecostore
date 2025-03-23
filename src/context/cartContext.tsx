@@ -3,7 +3,9 @@ import { Product } from "../types";
 
 interface CartContextType {
   cart: Product[];
-  addToCart: (product: Product) => void;
+  addItemToCart: (product: Product) => void;
+  updateCartItem: (itemId: number, updates: { quantity: number }) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -11,10 +13,22 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Product[]>([]);
 
-  const addToCart = (product: Product) => setCart([...cart, product]);
+  const addItemToCart = (product: Product) => {
+    setCart((prevCart) => [...prevCart, { ...product, quantity: 1 }]);
+  };
+
+  const clearCart = () => setCart([]);
+
+  const updateCartItem = (itemId: number, updates: { quantity: number }) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === itemId ? { ...item, ...updates } : item
+      )
+    );
+  };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart }}>
+    <CartContext.Provider value={{ cart, addItemToCart, clearCart, updateCartItem }}>
       {children}
     </CartContext.Provider>
   );

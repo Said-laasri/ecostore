@@ -1,50 +1,67 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "./ui/card";
+import { Card } from "./ui/card";
 import { useCart } from "../context/cartContext";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-}
+import { Product } from "../types";
 
 export default function Shop() {
-  const { addToCart } = useCart();
+  const { addItemToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://fakestoreapi.com/products") // Fetch products from the Fake Store API
+    fetch("https://api.escuelajs.co/api/v1/products")
       .then((res) => res.json())
-      .then((data) => {
-        setProducts(
-          data.map((item: { id: number; title: string; price: number; image: string }) => ({
-            id: item.id,
-            name: item.title,
-            price: item.price,
-            image: item.image,
-          }))
-        );
+      .then((data: Product[]) => {
+        const mappedProducts = data.map((item: Product) => ({
+          ...item,
+          name: item.title,
+          image: item.images[0],
+        }));
+        setProducts(mappedProducts);
         setLoading(false);
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
-  if (loading) return <p>Loading products...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-16"> {/* Reduced gap */}
       {products.map((product) => (
-        <Card key={product.id} className="p-4 bg-transparent shadow-lg rounded-xl">
-          <img  className="w-full h-48 object-contain rounded-lg" src={product.image} alt={product.name} />
-          <CardContent className="mt-4">
-            <h2 className="text-lg font-bold">{product.name}</h2>
-            <p className="text-green-700 font-semibold">${product.price}</p>
-            <button className="mt-2 bg-green-600 text-white w-full p-2 rounded-lg" onClick={() => addToCart(product)}>
-              Add to Cart
-            </button>
-          </CardContent>
+        <Card
+          key={product.id}
+          className="p-1 bg-white/80  shadow-md rounded-lg " // Reduced shadow and rounded
+        >
+          <div
+            className="relative" // Relative positioning for overlay
+            style={{
+              backgroundImage: `url(${product.image})`,
+              backgroundSize: "contain", // Display image in original size
+              backgroundRepeat: "no-repeat", // Prevent image repetition
+              backgroundPosition: "center", // Center the image
+              paddingBottom: "100%", // Maintain aspect ratio (assuming square images)
+            }}
+          >
+            <div className="absolute inset-0 bg-black/50 rounded-lg flex flex-col justify-end p-4 opacity-0 transition-opacity duration-300 hover:opacity-100">
+              <h2 className="text-lg font-semibold text-white text-center">
+                {product.title}
+              </h2>
+              <p className="text-green-400 font-bold text-xl mt-2 text-center">
+                ${product.price.toFixed(2)}
+              </p>
+              <button
+                className="mt-4 bg-green-600 text-white w-full py-2 rounded-md hover:bg-green-700 transition-colors"
+                onClick={() => addItemToCart(product)}
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
         </Card>
       ))}
     </div>

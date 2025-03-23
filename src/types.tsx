@@ -1,6 +1,10 @@
+// src/types.ts
 export interface Product {
-    id: number;
-    name: string;
-    price: number;
-    image: string;
-  }
+  quantity: number;
+  id: number;
+  title: string;
+  price: number;
+  images: string[];
+  name: string; // Add name property
+  image: string; // Add image property
+}
